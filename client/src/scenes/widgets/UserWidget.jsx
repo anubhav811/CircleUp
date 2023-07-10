@@ -29,7 +29,7 @@ const UserWidget = ({ userId, picturePath }) => {
 
 
   const getUser = async () => {
-    const response = await fetch(`http://localhost:3001/users/${userId}`, {
+    const response = await fetch(`https://social-media-backend-4nur.onrender.com/users/${userId}`, {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -41,7 +41,7 @@ const UserWidget = ({ userId, picturePath }) => {
   const updateUser = async () => {
     try {
       const response = await axios.patch(
-        `http://localhost:3001/users/${userId}`,
+        `https://social-media-backend-4nur.onrender.com/users/${userId}`,
         { twitter, linkedIn },
         {
           headers: {
