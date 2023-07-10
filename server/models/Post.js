@@ -49,7 +49,9 @@ const postSchema = mongoose.Schema(
     saved: {
       type: Map,
       of: Boolean,
+      default: {},
     },
+
   },
   { timestamps: true }
 );

@@ -134,3 +134,26 @@ export const getComments = async (req, res) => {
   }
 };
 
+
+export const savePost = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId } = req.body;
+
+    const post = await Post.findById(id);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    // Toggle the saved status for the user
+    const savedStatus = post.saved.get(userId);
+    post.saved.set(userId, !savedStatus);
+
+    // Save the updated post
+    await post.save();
+
+    res.status(200).json({ message: "Post saved successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

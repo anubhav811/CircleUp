@@ -23,7 +23,6 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setPost } from "state";
 import axios from "axios";
-import { get } from "lodash";
 import CommentWidget from "./CommentWidget";
 
 const PostWidget = ({
@@ -36,17 +35,18 @@ const PostWidget = ({
   userPicturePath,
   likes,
   comments,
+  saved
 }) => {
   const [isComments, setIsComments] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [postComments, setPostComments] = useState([]);
-  const [PostCategory, setPostCategory] = useState(false)
+  const [PostCategory, setPostCategory] = useState(false);
   const dispatch = useDispatch();
   const token = useSelector((state) => state.token);
   const loggedInUserId = useSelector((state) => state.user._id);
   const isLiked = Boolean(likes[loggedInUserId]);
   const likeCount = Object.keys(likes).length;
-
+  const isSaved = Boolean(saved[loggedInUserId])
   const { palette } = useTheme();
   const main = palette.neutral.main;
   const primary = palette.primary.main;
@@ -69,6 +69,30 @@ const PostWidget = ({
       console.error(error);
     }
   };
+
+  const patchSave = async () => {
+    try{
+      const response = await axios.patch(
+        `http://localhost:3001/posts/${postId}/save`,
+        { userId: loggedInUserId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+        ,
+        {body:{
+          userId:loggedInUserId
+        }}
+      );
+    const updatedPost = await response.data;
+    dispatch(setPost({ post: updatedPost }));
+  }catch(err){
+    console.log(err)
+  }
+  };
+  
 
   const postComment = async () => {
     try {
@@ -95,11 +119,6 @@ const PostWidget = ({
 
   const addComment = () => {
     postComment();
-  };
-
-  const handleShare = () => {
-    const postUrl = `http://localhost:3000/posts`;
-    navigator.clipboard.writeText(postUrl);
   };
 
   useEffect(() => {
@@ -174,20 +193,11 @@ const PostWidget = ({
               {postComments ? postComments.length : comments.length}
             </Typography>
           </FlexBetween>
+          <IconButton onClick={patchSave}>
+            {isSaved ? <BookmarkOutlined /> : <BookmarkBorder />}
+          </IconButton>
 
-          {!window.location.pathname.includes("saved") && (
-            <IconButton onClick={() => setPostCategory(!PostCategory)}>
-              {PostCategory ? (
-                <BookmarkBorder sx={{ color: primary }} />
-              ) : (
-                <BookmarkBorder />
-              )}
-            </IconButton>
-          )}
         </FlexBetween>
-        <IconButton onClick={handleShare}>
-          <ShareOutlined />
-        </IconButton>
       </FlexBetween>
 
       {isComments && (
@@ -198,51 +208,40 @@ const PostWidget = ({
               label="Add a comment"
               variant="outlined"
               size="small"
-              sx={{ width: "100%" }}
+              sx={{
+                width: "100%",
+                borderRadius: "20px", // Adjust the value as per your preference
+              }}
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
             />
+
             <Button
               variant="contained"
               onClick={addComment}
               style={{
                 cursor: "pointer",
+                borderRadius: "8px", // Adjust the value as per your preference
               }}
             >
               Add
             </Button>
           </FlexBetween>
           <Box mt="1rem">
-              {postComments?.map((comment, index) => (
-                <FlexBetween key={index} mt="0.5rem">
-                  {console.log(comment)}
-                  <CommentWidget
-                    commenterName={comment.commenterName}
-                    comment = {comment.comment}
-                    userImage={comment.commenterProfilePic}
-                    />
-                </FlexBetween>
-              ))}
-  
-
-        </Box>
+            {postComments?.map((comment, index) => (
+              <FlexBetween key={index} mt="0.5rem">
+                {console.log(comment)}
+                <CommentWidget
+                  commenterName={comment.commenterName}
+                  comment={comment.comment}
+                  userImage={comment.commenterProfilePic}
+                />
+              </FlexBetween>
+            ))}
+          </Box>
         </Box>
       )}
 
-      <Box mt="0.5rem">
-        {PostCategory && (
-          <PostCategorizer
-            postId={postId}
-            likes={likes}
-            picturePath={picturePath}
-            userPicturePath={userPicturePath}
-            name={name}
-            description={description}
-            location={location}
-            comments={comments}
-          />
-        )}
-      </Box>
     </WidgetWrapper>
   );
 };
