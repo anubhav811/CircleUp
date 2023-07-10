@@ -1,5 +1,28 @@
 import mongoose from "mongoose";
 
+const commentSchema = mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  comment: {
+    type: String,
+    required: true,
+  },
+  commenterName: {
+    type: String,
+    required: true,
+  },
+  commenterProfilePic: {
+    type: String,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now(),
+  },
+});
+
 const postSchema = mongoose.Schema(
   {
     userId: {
@@ -22,9 +45,10 @@ const postSchema = mongoose.Schema(
       type: Map,
       of: Boolean,
     },
-    comments: {
-      type: Array,
-      default: [],
+    comments: [commentSchema], // Include the modified comment schema
+    saved: {
+      type: Map,
+      of: Boolean,
     },
   },
   { timestamps: true }
